@@ -1,16 +1,15 @@
 const fs = require('fs');
 const express = require('express');
-const jsonData = require('./Develop/db/db.json');
+const db = require('./Develop/db/db.json');
 
 const PORT = 3001;
 const app = express();
 const path = require('path');
-const util = require('util');
-const uuid = require('uuid');
+const { v4: uuidv4 } = require('uuid');
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-
+app.use(express.static("public"));
 
 app.get("/notes", (req,res)=>{
     let htmlFile = path.join(__dirname, '/public/notes.html')
@@ -19,51 +18,70 @@ app.get("/notes", (req,res)=>{
 })
 
 
-
-console.log(jsonData)
+console.log(db)
 app.get("/api/notes", (req,res)=>{
-    res.send(jsonData)
+    res.send(db)
 })
 
-// Promise version of fs.writeFile
-const writeFileAsync = util.promisify(fs.writeFile);
+function updateNote(){
+    const stringNote = JSON.stringify(db, null, "\t");
 
+        fs.writeFile(`./db/db.json`, stringNote, (err) =>
+            err
+                ? console.error(err)
+                : console.log(
+                    `Database has been updated`
+                )
+        );
+}
 
-app.post('/api/notes', (req, res) => {
+// Receives POST request when user hits the save button, puts the db.json into the database
+app.post('/api/notes', (req, res) =>{
+    console.log(`${req.method} request recieved to save note`)
 
-
-    let note = JSON.stringify(req.body)
     const {title, text} = req.body;
 
-    const newNote = {
-        title,
-        text,
-        id: uuid
+    if(title && text){
+        const newNote = {
+            title,
+            text,
+            id: uuidv4()
+        };
+
+        // db is called as a dependency and directly pushed to
+        db.push(newNote);
+
+        updateNote();
+
+        const response = {
+            status: "success",
+            body: newNote,
+        };
+
+        console.log(response);
+        res.json(response);
+    } else{
+        res.json("failed to save note");
     }
-    
+});
 
-    fs.readFile('./db/db.json', 'utf8', (err, data) => {
-        if (err) {
-          console.error(err);
-        } else {
-          const newArr = JSON.parse(data);
-          
-          
+app.delete('/api/notes/:id', (req, res) =>{
+    // deconstructs the req object, sets id param to an ID;
+    const { id } = req.params;
 
-          newArr.push(newNote);
-          writeFileAsync(
-            './Develop/db.json',
-            JSON.stringify(newArr, null, 4),
-            (err) =>
-              err
-                ? console.error(err)
-                : console.info('Successfully updated reviews!')
-          );
-        }
-      });
-    // console.info(`${req.method} request received to add a review`);
-    res.json(`${req.method} request received to add a review`);
-  });
+    // array method to find the index associated with that ID
+    const noteIndex = db.findIndex(obj => obj.id == id)
+
+    // logs the title name to send as a response to the user
+    let titleDeleted = db[noteIndex].title;
+
+    // splice 1 item at that index
+    db.splice(noteIndex, 1);
+    //call the update database method
+    updateNote();
+    res.json(`Deleted the note titled ${titleDeleted}`);
+})
+
 
 
 
@@ -74,9 +92,7 @@ app.get("*", (req,res)=>{
     res.sendFile(htmlFile)
 })
 
-app.delete('/api/notes/:id', (req,res)=> {
-    console.log('hi');
-});
+
 
 app.listen(PORT, () =>
   console.log(`Express server listening on port ${PORT}!`)
