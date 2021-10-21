@@ -39,7 +39,7 @@ function updateNote(){
         );
 }
 
-// Receives POST request when user hits the save button, puts the db.json into the database
+// POST request
 app.post('/api/notes', (req, res) =>{
     console.log(`${req.method} request recieved to save note`)
 
@@ -51,8 +51,6 @@ app.post('/api/notes', (req, res) =>{
             text,
             id: uuidv4()
         };
-
-        // db is called as a dependency and directly pushed to
         db.push(newNote);
 
         updateNote();
@@ -69,6 +67,17 @@ app.post('/api/notes', (req, res) =>{
     }
 });
 
+
+// delete request
+app.delete('/api/notes/:id', (req, res) =>{
+   
+    const { id } = req.params;
+    const noteIndex = db.findIndex(obj => obj.id == id)
+    let titleDeleted = db[noteIndex].title;
+    db.splice(noteIndex, 1);
+    updateNote();
+    res.json(`Deleted the note titled ${titleDeleted}`);
+})
 
 
 // GET request - initialize index.html
