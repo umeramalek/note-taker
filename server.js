@@ -18,39 +18,53 @@ app.get("/notes", (req,res)=>{
     res.sendFile(htmlFile)
 })
 
-// Promise version of fs.readFile
-const readFromFile = util.promisify(fs.readFile);
+
 
 console.log(jsonData)
 app.get("/api/notes", (req,res)=>{
     res.send(jsonData)
-    readFromFile(jsonData).then((data) => res.json(JSON.parse(data)));
 })
 
-const writeToFile = (destination, content) =>
-  fs.writeFile(destination, JSON.stringify(content, null, 4), (err) =>
-    err ? console.error(err) : console.info(`\nData written to ${destination}`)
-  );
-
-const readAndAppend = (content, file) => {
-    fs.readFile(file, 'utf8', (err, data) => {
-      if (err) {
-        console.error(err);
-      } else {
-        const parsedData = JSON.parse(data);
-        parsedData.push(content);
-        writeToFile(file, parsedData);
-      }
-    });
-  };
+// Promise version of fs.writeFile
+const writeFileAsync = util.promisify(fs.writeFile);
 
 
-app.post("/api/notes", (req,res)=>{
-    const { title,text } = req.body;
+app.post('/api/notes', (req, res) => {
 
 
-    readAndAppend(newTip, './db/tips.json');
-})
+    let note = JSON.stringify(req.body)
+    const {title, text} = req.body;
+
+    const newNote = {
+        title,
+        text,
+        id: uuid
+    }
+    
+
+    fs.readFile('./db/db.json', 'utf8', (err, data) => {
+        if (err) {
+          console.error(err);
+        } else {
+          const newArr = JSON.parse(data);
+          
+          
+
+          newArr.push(newNote);
+          writeFileAsync(
+            './Develop/db.json',
+            JSON.stringify(newArr, null, 4),
+            (err) =>
+              err
+                ? console.error(err)
+                : console.info('Successfully updated reviews!')
+          );
+        }
+      });
+    // console.info(`${req.method} request received to add a review`);
+    res.json(`${req.method} request received to add a review`);
+  });
+
 
 
 
@@ -60,17 +74,9 @@ app.get("*", (req,res)=>{
     res.sendFile(htmlFile)
 })
 
-
-
-
-
-
-
-
-
-
-
-
+app.delete('/api/notes/:id', (req,res)=> {
+    console.log('hi');
+});
 
 app.listen(PORT, () =>
   console.log(`Express server listening on port ${PORT}!`)
