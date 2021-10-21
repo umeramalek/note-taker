@@ -32,7 +32,7 @@ app.get("/api/notes", (req,res)=>{
 function updateNote(){
     const stringNote = JSON.stringify(db, null, "\t");
 
-        fs.writeFile(`./Develop/db.json`, stringNote, (err) =>
+        fs.writeFile(`./Develop/db/db.json`, stringNote, (err) =>
             err
                 ? console.error(err)
                 : console.log(
