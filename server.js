@@ -27,6 +27,8 @@ app.get("/api/notes", (req,res)=>{
     res.send(db)
 })
 
+
+// to update database
 function updateNote(){
     const stringNote = JSON.stringify(db, null, "\t");
 
@@ -34,7 +36,7 @@ function updateNote(){
             err
                 ? console.error(err)
                 : console.log(
-                    `Database has been updated`
+                    `updated`
                 )
         );
 }
@@ -51,8 +53,11 @@ app.post('/api/notes', (req, res) =>{
             text,
             id: uuidv4()
         };
+
+        // pushed in new array
         db.push(newNote);
 
+        // call on the update
         updateNote();
 
         const response = {
