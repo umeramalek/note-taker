@@ -1,23 +1,27 @@
 const fs = require('fs');
+const path = require('path');
 const express = require('express');
 const db = require('./Develop/db/db.json');
+const { v4: uuidv4 } = require('uuid');
+
 
 const PORT = 3001;
 const app = express();
-const path = require('path');
-const { v4: uuidv4 } = require('uuid');
 
+// Middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static("public"));
 
+
+// GET request - initialize notes.html
 app.get("/notes", (req,res)=>{
     let htmlFile = path.join(__dirname, '/public/notes.html')
     console.log(htmlFile)
     res.sendFile(htmlFile)
 })
 
-
+// GET request - notes are sent as json in database
 console.log(db)
 app.get("/api/notes", (req,res)=>{
     res.send(db)
@@ -26,7 +30,7 @@ app.get("/api/notes", (req,res)=>{
 function updateNote(){
     const stringNote = JSON.stringify(db, null, "\t");
 
-        fs.writeFile(`./db/db.json`, stringNote, (err) =>
+        fs.writeFile(`./Develop/db.json`, stringNote, (err) =>
             err
                 ? console.error(err)
                 : console.log(
@@ -61,39 +65,20 @@ app.post('/api/notes', (req, res) =>{
         console.log(response);
         res.json(response);
     } else{
-        res.json("failed to save note");
+        res.json("failed ");
     }
 });
 
-app.delete('/api/notes/:id', (req, res) =>{
-    // deconstructs the req object, sets id param to an ID;
-    const { id } = req.params;
-
-    // array method to find the index associated with that ID
-    const noteIndex = db.findIndex(obj => obj.id == id)
-
-    // logs the title name to send as a response to the user
-    let titleDeleted = db[noteIndex].title;
-
-    // splice 1 item at that index
-    db.splice(noteIndex, 1);
-    //call the update database method
-    updateNote();
-    res.json(`Deleted the note titled ${titleDeleted}`);
-})
 
 
-
-
-
+// GET request - initialize index.html
 app.get("*", (req,res)=>{
     let htmlFile = path.join(__dirname, '/public/index.html')
     console.log(htmlFile)
     res.sendFile(htmlFile)
 })
 
-
-
+// listen port
 app.listen(PORT, () =>
   console.log(`Express server listening on port ${PORT}!`)
 );
