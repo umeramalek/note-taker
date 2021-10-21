@@ -11,7 +11,7 @@ Notes Taker is a full stack application which allows the user to create and save
  2. (note: if link hasn't been visited in a while it may take a minute for Heroku to launch the website)
 
 ## Mock Up
-![](img/)
+![](Assets/img/note-taker.gif)
 
 ## Built With
 
